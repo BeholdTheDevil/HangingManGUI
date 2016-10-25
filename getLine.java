@@ -3,7 +3,7 @@ import java.util.*;
 
 public class getLine {
 
-	public static void main(String[] args) {
+	public static String getWord() {
 
 		try{
 
@@ -16,7 +16,7 @@ public class getLine {
 				// Generate random number.
 			int rand = random.nextInt(max - min) + min;
 
-			System.out.println(rand);
+			//System.out.println(rand);
 				// Get file
 			FileInputStream fs = new FileInputStream("dictfile.txt");
 			DataInputStream in = new DataInputStream(fs);
@@ -43,7 +43,8 @@ public class getLine {
 			while((str = br.readLine()) != null) {
 				i++;
 				if(i == rand) {
-				System.out.println(str);
+			//	System.out.println(str);
+					return str;
 				}
 			}
 			in.close();
@@ -51,6 +52,6 @@ public class getLine {
 		catch(IOException e) {
 			// No exception
 		}
+		return null;
 	}
-
 }
