@@ -190,7 +190,11 @@ public class hangingmanGUI extends JFrame {
 			}
 		}
 		//Add your guess to the list of guesses
-		wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns));
+		if(compareToWordList(currentAns)) {
+			savedWordArray[guessCount] = currentAns;
+			wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns));
+			guessCount++;
+		}
 		//Update the printed characters
 		answerField.setText(String.valueOf(printedWord));
 		//Remove characters from input box
@@ -200,7 +204,7 @@ public class hangingmanGUI extends JFrame {
 	public static boolean compareToWordList(char[] currentAns) {
 		//Function for comparing to already guessed words
 		for(int i = 0; i < savedWordArray.length; i++) {
-			if(savedWordArray[i] == currentAns) {
+			if(Arrays.equals(savedWordArray[i], currentAns)) {
 				return false;
 			}			
 		}
@@ -227,7 +231,6 @@ public class hangingmanGUI extends JFrame {
 
 		//The following is the nulling of predefined constraints and the definition of new ones
 		c = gbc();
-		//c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridheight = 2;
 		c.gridwidth = 6;
 		c.weighty = 1.0;
