@@ -20,6 +20,7 @@ public class hangingmanGUI extends JFrame {
 	----------!            NUMBER OF FRAMES REQUIRED FOR HANGING = 11             !---------------
 	*/
 	public static int guesses = 11;
+	public static int guessCount = 0;
 
 	public static JFrame mainframe;
 	public static JTextPane wordList;
@@ -55,10 +56,11 @@ public class hangingmanGUI extends JFrame {
 		savedWordArray = new char[guesses][length];
 
 		initHangMan();
-		initUserInput();
 		initAnswerField();
-		initSubmit();
 		initWordList();
+		initUserInput();
+		initSubmit();
+		initReset();
 
 		//Create the placebo word
 		printedWord = new char[length*2];
@@ -105,28 +107,55 @@ public class hangingmanGUI extends JFrame {
 		c.gridx = 3;
 		c.gridy = 2;
 		c.weightx = 1;
-		c.insets = new Insets(0, 10, 10, 10);
+		c.insets = new Insets(0, 10, 0, 10);
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
 
 		panel.add(submit, c);
 	}
 
 	public static void initReset() {
+		//Create the reset button
 		reset = new JButton("Reset");
-
+		//Add action event listener
 		reset.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				resetActionPerformed(e);
 			}
 		});
+
+		//The following is the nulling of predefined constraints and the definition of new ones
+		c = gbc();
+		c.gridx = 4;
+		c.gridy = 2;
+		c.weightx = 1;
+		c.insets = new Insets(0, 10, 0, 30);
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+
+		panel.add(reset, c);
 	}
 
-	public static void resetActionPerformed() {
+	public static void resetActionPerformed(ActionEvent e) throws NullPointerException {
+		//Reset button to start over 
+		//answerWord = getLine.getWord().toCharArray();
 
+		// ----------------------! TEMPORARY , FIX LATER !--------------------------
+
+		//Generate new word   		 OBS PLACEHOLDER ATM
+		answerWord = "hejsan".toCharArray();
+		//Create a new savedWordArray for comparison with the size of the new word
+		savedWordArray = new char[guesses][answerWord.length];
+		//Reset wordlist textfield
+		wordList.setText("Words guessed:");
 		guessCount = 0;
-		animation(0);
-		answerWord = getLine.getWord().toCharArray();
-		initGUI(answerWord.length);
+
+		//Generate new placeholder characters '_' for new wordlength
+		printedWord = new char[answerWord.length*2];
+		printedWord[0] = '_';
+		for(int i = 2; i < answerWord.length*2; i += 2) {
+			printedWord[i-1] = ' ';
+			printedWord[i] = '_';
+		}
+		answerField.setText(String.valueOf(printedWord));
 	}
 
 	public static void submitActionPerformed(ActionEvent e) throws NullPointerException {
@@ -142,7 +171,7 @@ public class hangingmanGUI extends JFrame {
 				//	youWon();
 			} else {
 				//If it isn't, append the word to the wordlist box and animate hanging
-
+				
 			//	animateHanging();
 			}
 
@@ -169,7 +198,7 @@ public class hangingmanGUI extends JFrame {
 	}
 
 	public static boolean compareToWordList(char[] currentAns) {
-
+		//Function for comparing to already guessed words
 		for(int i = 0; i < savedWordArray.length; i++) {
 			if(savedWordArray[i] == currentAns) {
 				return false;
@@ -198,9 +227,9 @@ public class hangingmanGUI extends JFrame {
 
 		//The following is the nulling of predefined constraints and the definition of new ones
 		c = gbc();
-		c.fill = GridBagConstraints.HORIZONTAL;
+		//c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridheight = 2;
-		c.gridwidth = 2;
+		c.gridwidth = 6;
 		c.weighty = 1.0;
 		c.gridx = 2;
 		c.gridy = 0;
