@@ -1,3 +1,5 @@
+import java.io.*;
+import java.lang.Thread;
 import java.awt.*;
 import java.awt.Color;
 import java.awt.event.*;
@@ -11,10 +13,11 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.Style;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.BadLocationException;
-import java.io.*;
 import java.util.Arrays;
 
 public class hangingmanGUI extends JFrame {
+
+	//29x29 frame
 
 	/*
 	----------!            NUMBER OF FRAMES REQUIRED FOR HANGING = 11             !---------------
@@ -40,6 +43,9 @@ public class hangingmanGUI extends JFrame {
 		answerWord = "hej".toCharArray();//getLine.getWord().toCharArray();
 		//Initialize GUI
 		initGUI(answerWord.length);
+		//Start new thread for drawing of the hanging
+		MyThread mt = new MyThread();
+		mt.start();
 	}
 
 	public static GridBagConstraints gbc() {
@@ -166,7 +172,11 @@ public class hangingmanGUI extends JFrame {
 
 			//Check if the char[] currentAns is equal to the char[] answerWord
 			if(Arrays.equals(currentAns, answerWord)) {
-				printedWord = answerWord;
+				//Make sure the same spacing still exists between letters even if you guess the whole word
+				printedWord[0] = answerWord[0];
+				for(int j = 1; j < answerWord.length; j++) {
+					printedWord[j*2] = answerWord[j];
+				}
 				//If it is you win the game
 				//	youWon();
 			} else {
@@ -296,5 +306,14 @@ public class hangingmanGUI extends JFrame {
 		c.anchor = GridBagConstraints.CENTER;
 
 		panel.add(userInput, c);
+	}
+}
+
+class MyThread extends Thread{
+
+	public void run() {
+		while(true) {
+
+		}
 	}
 }
