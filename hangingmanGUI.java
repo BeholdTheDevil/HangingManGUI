@@ -13,6 +13,7 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.Style;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.BadLocationException;
+import java.util.concurrent.*;
 import java.util.Arrays;
 
 public class hangingmanGUI extends JFrame {
@@ -37,15 +38,21 @@ public class hangingmanGUI extends JFrame {
 	public static char[][] savedWordArray;
 	public static char[] printedWord;
 	public static char[] answerWord;
+	public static BlockingQueue<Integer> bufferQueue = new LinkedBlockingQueue<Integer>(20);
 
 	public static void main(String[] args) {
 		//Get the randomized word from the dictionary
 		answerWord = "hej".toCharArray();//getLine.getWord().toCharArray();
 		//Initialize GUI
 		initGUI(answerWord.length);
+		//Thread preparation
+		initThread();
+	}
+
+	public static void initThread() {
 		//Start new thread for drawing of the hanging
-		MyThread mt = new MyThread();
-		mt.start();
+		MyThread mt = new MyThread(bufferQueue);
+		new Thread(mt).start();
 	}
 
 	public static GridBagConstraints gbc() {
@@ -165,6 +172,9 @@ public class hangingmanGUI extends JFrame {
 	}
 
 	public static void submitActionPerformed(ActionEvent e) throws NullPointerException {
+
+		boolean correctAns = false;
+
 		//On actionevent trigger get current answer from answerfield
 		char[] currentAns = userInput.getText().toCharArray();
 		//Check for valid guess 
@@ -172,6 +182,7 @@ public class hangingmanGUI extends JFrame {
 
 			//Check if the char[] currentAns is equal to the char[] answerWord
 			if(Arrays.equals(currentAns, answerWord)) {
+				correctAns = true;
 				//Make sure the same spacing still exists between letters even if you guess the whole word
 				printedWord[0] = answerWord[0];
 				for(int j = 1; j < answerWord.length; j++) {
@@ -179,17 +190,13 @@ public class hangingmanGUI extends JFrame {
 				}
 				//If it is you win the game
 				//	youWon();
-			} else {
-				//If it isn't, append the word to the wordlist box and animate hanging
-				
-			//	animateHanging();
 			}
-
 			//If char[] is a single char
 		} else if(currentAns.length == 1) {
 			//Check if answer contains that character
 			for(int i = 0; i < answerWord.length; i++) {
 				if(answerWord[i] == currentAns[0]) {
+					correctAns = true;
 					//Check if that completes the word
 					printedWord[i*2] = currentAns[0];
 					if(String.valueOf(printedWord).replaceAll("\\s+","") == String.valueOf(answerWord)) {
@@ -198,12 +205,19 @@ public class hangingmanGUI extends JFrame {
 					}
 				}
 			}
+			if(!correctAns) {
+				guessCount++;
+				try {
+					bufferQueue.put(guessCount);
+				} catch(InterruptedException exc) {
+					
+				}
+			}
 		}
 		//Add your guess to the list of guesses
 		if(compareToWordList(currentAns)) {
 			savedWordArray[guessCount] = currentAns;
 			wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns));
-			guessCount++;
 		}
 		//Update the printed characters
 		answerField.setText(String.valueOf(printedWord));
@@ -309,11 +323,21 @@ public class hangingmanGUI extends JFrame {
 	}
 }
 
-class MyThread extends Thread{
+class MyThread extends Thread {
+
+	protected BlockingQueue<Integer> queue = null;
+
+	public MyThread(BlockingQueue<Integer> queue) {
+		this.queue = queue;
+	}
 
 	public void run() {
 		while(true) {
-
+			try {
+				System.out.println(queue.take());
+			} catch(InterruptedException exc) {
+				exc.printStackTrace();
+			}
 		}
 	}
 }
