@@ -41,11 +41,11 @@ public class getLine {
 			int i = 0;
 			
 			while((str = br.readLine()) != null) {
-				i++;
 				if(i == rand) {
 			//	System.out.println(str);
 					return str;
 				}
+				i++;
 			}
 			in.close();
 		} 
