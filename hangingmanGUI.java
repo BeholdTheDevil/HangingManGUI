@@ -256,6 +256,8 @@ public class hangingmanGUI extends JFrame {
 				}
 				if(guessCount == guesses) {
 					//You have lost
+					answerField.setText(String.valueOf(printedWord).toString().toUpperCase());
+					currentAns = new char[currentAns.length];
 					youLost();
 				}
 			}
@@ -270,6 +272,7 @@ public class hangingmanGUI extends JFrame {
 		answerField.setText(String.valueOf(printedWord).toString().toUpperCase());
 		//Remove characters from input box
 		userInput.setText("");
+		userInput.requestFocus();
 	}
 
 	public static boolean compareToWordList(char[] currentAns) {
@@ -298,6 +301,7 @@ public class hangingmanGUI extends JFrame {
          		new java.awt.Font("Verdana", 2, 2)), javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1)
       			)
       		);
+		JScrollPane scroll = new JScrollPane(wordList);
 
 		//The following is the nulling of predefined constraints and the definition of new ones
 		c = gbc();
@@ -309,7 +313,7 @@ public class hangingmanGUI extends JFrame {
 		c.weightx = 1.0;
 		c.insets = new Insets(10, 10, 10, 50);
 
-		panel.add(wordList, c);
+		panel.add(scroll, c);
 	}
 
 	public static void initHangMan() {
@@ -366,6 +370,29 @@ public class hangingmanGUI extends JFrame {
 		c.anchor = GridBagConstraints.CENTER;
 
 		panel.add(userInput, c);
+
+		userInput.addKeyListener(
+            new KeyListener(){
+
+                @Override
+                public void keyPressed(KeyEvent e){
+
+                    if(e.getKeyCode() == KeyEvent.VK_ENTER){
+                    	submitActionPerformed(new ActionEvent(userInput, 0, null));
+                    }       
+                }
+
+                @Override
+                public void keyTyped(KeyEvent e) {
+
+                }
+
+                @Override
+                public void keyReleased(KeyEvent e) {
+
+                }
+            }
+        );
 	}
 
 
