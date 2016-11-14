@@ -100,9 +100,10 @@ public class hangingmanGUI extends JFrame {
 		answerField.setText(String.valueOf(printedWord));
 
 		//Pack up and locate window at center of screen
-		mainframe.pack();	
+		mainframe.pack();
    	    mainframe.setLocationRelativeTo(null);		
 		mainframe.setVisible(true);
+		userInput.requestFocus();	
 	}
 
 	public static void initMainframe() {
@@ -181,8 +182,9 @@ public class hangingmanGUI extends JFrame {
 		//Create a new savedWordArray for comparison with the size of the new word
 		savedWordArray = new char[guesses][answerWord.length];
 		//Reset wordlist textfield
-		wordList.setText("Words guessed:");
+		wordList.setText("Guessed characters/words:");
 		guessCount = 0;
+		animation.setText("");
 
 		//Generate new placeholder characters '_' for new wordlength
 		printedWord = new char[answerWord.length*2];
@@ -199,10 +201,10 @@ public class hangingmanGUI extends JFrame {
 
 		//On actionevent trigger get current answer from answerfield
 		char[] currentAns = userInput.getText().toCharArray();
-		String temp = String.valueOf(currentAns).toLowerCase();
+		String temp = String.valueOf(currentAns).trim().toLowerCase();
 		currentAns = temp.toCharArray();
 		//Check for valid guess 
-		if(currentAns.length > 1 && compareToWordList(currentAns)) {
+		if(currentAns.length > 1 && compareToWordList(currentAns) && validInput(currentAns)) {
 
 			//Check if the char[] currentAns is equal to the char[] answerWord
 			if(Arrays.equals(currentAns, answerWord)) {
@@ -226,7 +228,7 @@ public class hangingmanGUI extends JFrame {
 				}
 			}
 			//If char[] is a single char
-		} else if(currentAns.length == 1 && compareToWordList(currentAns)) {
+		} else if(currentAns.length == 1 && compareToWordList(currentAns) && validInput(currentAns)) {
 			//Check if answer contains that character
 			for(int i = 0; i < answerWord.length; i++) {
 				if(answerWord[i] == currentAns[0]) {
@@ -261,7 +263,7 @@ public class hangingmanGUI extends JFrame {
 			}
 		}
 		//Add your guess to the list of guesses
-		if(compareToWordList(currentAns)) {
+		if(compareToWordList(currentAns) && validInput(currentAns)) {
 			savedWordArray[guessCount] = currentAns;
 			wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns).toUpperCase());
 		}
@@ -271,6 +273,15 @@ public class hangingmanGUI extends JFrame {
 		//Remove characters from input box
 		userInput.setText("");
 		userInput.requestFocus();
+	}
+
+	public static boolean validInput(char[] currentAns) {
+		for(char c : currentAns) {
+			if(c < 65 || (c > 90 && c < 97) || c > 122) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static boolean compareToWordList(char[] currentAns) {
@@ -391,7 +402,6 @@ public class hangingmanGUI extends JFrame {
                 }
             }
         );
-        userInput.requestFocus();
 	}
 
 
