@@ -48,7 +48,9 @@ public class hangingmanGUI extends JFrame {
 			if(args[0].equals("-god")) {
 				Scanner scan = new Scanner(System.in);
 				godMode = true;
-				answerWord = scan.next().toCharArray();
+				System.out.println("Godmode engaged, please enter a word");
+				String temp = scan.next().toLowerCase();
+				answerWord = temp.toCharArray();
 			} else {
 				answerWord = getLine.getWord().toCharArray();
 			}
@@ -166,10 +168,12 @@ public class hangingmanGUI extends JFrame {
 	}
 
 	public static void restart() {
-		Scanner scan = new Scanner(System.in);
 		if(godMode) {
 			//Godmode on restart xD
-			answerWord = scan.next().toCharArray();
+			System.out.println("Godmode engaged, please enter a word");
+			Scanner scan = new Scanner(System.in);
+			String temp = scan.next().toLowerCase();
+			answerWord = temp.toCharArray();
 		} else {
 			//Generate new word  
 			answerWord = getLine.getWord().toCharArray();
@@ -195,6 +199,8 @@ public class hangingmanGUI extends JFrame {
 
 		//On actionevent trigger get current answer from answerfield
 		char[] currentAns = userInput.getText().toCharArray();
+		String temp = String.valueOf(currentAns).toLowerCase();
+		currentAns = temp.toCharArray();
 		//Check for valid guess 
 		if(currentAns.length > 1 && compareToWordList(currentAns)) {
 
@@ -221,13 +227,20 @@ public class hangingmanGUI extends JFrame {
 			//If char[] is a single char
 		} else if(currentAns.length == 1 && compareToWordList(currentAns)) {
 			//Check if answer contains that character
+			for(char c : answerWord) {
+
+			}
+
+
 			for(int i = 0; i < answerWord.length; i++) {
 				if(answerWord[i] == currentAns[0]) {
 					correctAns = true;
 					//Check if that completes the word
 					printedWord[i*2] = currentAns[0];
-					if(String.valueOf(printedWord).replaceAll("\\s+","").equals(String.valueOf(answerWord))) {
+					if(String.valueOf(printedWord).replaceAll("\\s+","").trim().equals(String.valueOf(answerWord))) {
 						//You have won!
+						answerField.setText(String.valueOf(printedWord).toString().toUpperCase());
+						currentAns = new char[currentAns.length];
 						youWon();
 					}
 				}
@@ -250,7 +263,7 @@ public class hangingmanGUI extends JFrame {
 		//Add your guess to the list of guesses
 		if(compareToWordList(currentAns)) {
 			savedWordArray[guessCount] = currentAns;
-			wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns));
+			wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns).toUpperCase());
 		}
 		//Make sure printed characters are all uppercase
 		//Update the printed characters
@@ -363,13 +376,13 @@ public class hangingmanGUI extends JFrame {
 		submit.setEnabled(false);
 		JOptionPane pane = new JOptionPane("Congratulations you have won, do you want to play again?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
 		JDialog dialog = pane.createDialog("Play again?");
-		/*dialog.addWindowListener(new WindowAdapter() {
+		dialog.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent evt) {
 				restart();
 			}
-		});*/
+		});
 		dialog.setContentPane(pane);
-		dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		//dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		dialog.pack();
 		dialog.setVisible(true);
 		int n = ((Integer)pane.getValue()).intValue();
@@ -389,13 +402,13 @@ public class hangingmanGUI extends JFrame {
 		submit.setEnabled(false);
 		JOptionPane pane = new JOptionPane("You are out of guesses, do you want to play again?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
 		JDialog dialog = pane.createDialog("Try again?");
-		/*dialog.addWindowListener(new WindowAdapter() {
+		dialog.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent evt) {
 				restart();
 			}
-		});*/
+		});
 		dialog.setContentPane(pane);
-		dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		//dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		dialog.pack();
 		dialog.setVisible(true);
 		int n = ((Integer)pane.getValue()).intValue();
