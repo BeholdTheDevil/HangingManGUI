@@ -15,6 +15,7 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.BadLocationException;
 import java.util.concurrent.*;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class hangingmanGUI extends JFrame {
 
@@ -25,6 +26,7 @@ public class hangingmanGUI extends JFrame {
 	*/
 	public static int guesses = 11;
 	public static int guessCount = 0;
+	public static boolean godMode = false;
 
 	public static JFrame mainframe;
 	public static JTextPane wordList;
@@ -41,8 +43,19 @@ public class hangingmanGUI extends JFrame {
 	public static BlockingQueue<Integer> bufferQueue = new LinkedBlockingQueue<Integer>(20);
 
 	public static void main(String[] args) {
-		//Get the randomized word from the dictionary
-		answerWord = getLine.getWord().toCharArray();
+		//Cheat code
+		if(args.length > 0) {
+			if(args[0].equals("-god")) {
+				Scanner scan = new Scanner(System.in);
+				godMode = true;
+				answerWord = scan.next().toCharArray();
+			} else {
+				answerWord = getLine.getWord().toCharArray();
+			}
+		} else {
+			//Get the randomized word from the dictionary
+			answerWord = getLine.getWord().toCharArray();
+		}
 		//Initialize GUI
 		initGUI(answerWord.length);
 		//Thread preparation
@@ -149,9 +162,18 @@ public class hangingmanGUI extends JFrame {
 
 	public static void resetActionPerformed(ActionEvent e) throws NullPointerException {
 		//Reset button to start over 
+		restart();
+	}
 
-		//Generate new word  
-		answerWord = getLine.getWord().toCharArray();
+	public static void restart() {
+		Scanner scan = new Scanner(System.in);
+		if(godMode) {
+			//Godmode on restart xD
+			answerWord = scan.next().toCharArray();
+		} else {
+			//Generate new word  
+			answerWord = getLine.getWord().toCharArray();
+		}
 		//Create a new savedWordArray for comparison with the size of the new word
 		savedWordArray = new char[guesses][answerWord.length];
 		//Reset wordlist textfield
@@ -169,7 +191,6 @@ public class hangingmanGUI extends JFrame {
 	}
 
 	public static void submitActionPerformed(ActionEvent e) throws NullPointerException {
-
 		boolean correctAns = false;
 
 		//On actionevent trigger get current answer from answerfield
@@ -185,29 +206,44 @@ public class hangingmanGUI extends JFrame {
 				for(int j = 1; j < answerWord.length; j++) {
 					printedWord[j*2] = answerWord[j];
 				}
-				//If it is you win the game
-				//	youWon();
-			}
-			//If char[] is a single char
-		} else if(currentAns.length == 1) {
-			//Check if answer contains that character
-			for(int i = 0; i < answerWord.length; i++) {
-				if(answerWord[i] == currentAns[0]) {
-					correctAns = true;
-					//Check if that completes the word
-					printedWord[i*2] = currentAns[0];
-					if(String.valueOf(printedWord).replaceAll("\\s+","") == String.valueOf(answerWord)) {
-						//You have won!
-						//youWon();
-					}
-				}
+				System.out.println("Got here");
+				//------------------------------ Needs win function --------------------------
+				youWon();
 			}
 			if(!correctAns) {
 				guessCount++;
 				try {
 					bufferQueue.put(guessCount);
 				} catch(InterruptedException exc) {
-					
+				
+				}
+			}
+			//If char[] is a single char
+		} else if(currentAns.length == 1 && compareToWordList(currentAns)) {
+			//Check if answer contains that character
+			for(int i = 0; i < answerWord.length; i++) {
+				if(answerWord[i] == currentAns[0]) {
+					correctAns = true;
+					//Check if that completes the word
+					printedWord[i*2] = currentAns[0];
+					if(String.valueOf(printedWord).replaceAll("\\s+","").equals(String.valueOf(answerWord))) {
+						//You have won!
+						youWon();
+					}
+				}
+			}
+			//Check if answer was correct, if not increase the guesscount and check for loss
+			if(!correctAns) {
+				guessCount++;
+				try {
+					//Pushes the guesscount onto the bufferqueue so that the secondary thread can retrieve it
+					bufferQueue.put(guessCount);
+				} catch(InterruptedException exc) {
+				
+				}
+				if(guessCount == guesses) {
+					//You have lost
+					youLost();
 				}
 			}
 		}
@@ -216,18 +252,18 @@ public class hangingmanGUI extends JFrame {
 			savedWordArray[guessCount] = currentAns;
 			wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns));
 		}
+		//Make sure printed characters are all uppercase
 		//Update the printed characters
-		answerField.setText(String.valueOf(printedWord));
+		answerField.setText(String.valueOf(printedWord).toString().toUpperCase());
 		//Remove characters from input box
 		userInput.setText("");
 	}
 
 	public static boolean compareToWordList(char[] currentAns) {
 		//Function for comparing to already guessed words
-		for(int i = 0; i < savedWordArray.length; i++) {
-			if(Arrays.equals(savedWordArray[i], currentAns)) {
+		for(char[] word : savedWordArray) {
+			if(Arrays.equals(word, currentAns)) 
 				return false;
-			}			
 		}
 		return true;
 	}
@@ -318,6 +354,60 @@ public class hangingmanGUI extends JFrame {
 
 		panel.add(userInput, c);
 	}
+
+
+
+	public static void youWon() throws NullPointerException {
+		userInput.setEditable(false);
+		reset.setEnabled(false);
+		submit.setEnabled(false);
+		JOptionPane pane = new JOptionPane("Congratulations you have won, do you want to play again?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
+		JDialog dialog = pane.createDialog("Play again?");
+		/*dialog.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent evt) {
+				restart();
+			}
+		});*/
+		dialog.setContentPane(pane);
+		dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		dialog.pack();
+		dialog.setVisible(true);
+		int n = ((Integer)pane.getValue()).intValue();
+		if(n == JOptionPane.YES_OPTION) {
+			userInput.setEditable(true);
+			reset.setEnabled(true);
+			submit.setEnabled(true);
+			restart();
+		} else if(n == JOptionPane.NO_OPTION){
+			System.exit(0);
+		}
+	}
+
+	public static void youLost() throws NullPointerException {
+		userInput.setEditable(false);
+		reset.setEnabled(false);
+		submit.setEnabled(false);
+		JOptionPane pane = new JOptionPane("You are out of guesses, do you want to play again?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
+		JDialog dialog = pane.createDialog("Try again?");
+		/*dialog.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent evt) {
+				restart();
+			}
+		});*/
+		dialog.setContentPane(pane);
+		dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		dialog.pack();
+		dialog.setVisible(true);
+		int n = ((Integer)pane.getValue()).intValue();
+		if(n == JOptionPane.YES_OPTION) {
+			userInput.setEditable(true);
+			reset.setEnabled(true);
+			submit.setEnabled(true);
+			restart();
+		} else if(n == JOptionPane.NO_OPTION){
+			System.exit(0);
+		}
+	}
 }
 
 class MyThread extends Thread {
@@ -349,323 +439,123 @@ class MyThread extends Thread {
 							  "       \u2571                               \u2572   \n", 
 							  "     \u2571                                   \u2572  \n", 
 							  "   \u2571                                       \u2572 "},
-							 {"                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "         ____________________   \n", 
+							 {"                         _______  \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
 							  "       \u2571                               \u2572   \n", 
 							  "     \u2571                                   \u2572  \n", 
 							  "   \u2571                                       \u2572 "},
-							 {"                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "                             \n", 
-							  "         ____________________   \n", 
+							 {"                         ________ \n", 
+							  "                        \u2502    \u2571         \n", 
+							  "                        \u2502  \u2571          \n", 
+							  "                        \u2502\u2571            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
 							  "       \u2571                               \u2572   \n", 
 							  "     \u2571                                   \u2572  \n", 
-							  "   \u2571                                       \u2572 "}};/*
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ",
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |  /           ", 
-							  "              | /            ", 
-							  "              |/             ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |  /     |     ", 
-							  "              | /      |     ", 
-							  "              |/             ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |  /     |     ", 
-							  "              | /      |     ", 
-							  "              |/      (_)    ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |  /     |     ", 
-							  "              | /      |     ", 
-							  "              |/      (_)    ", 
-							  "              |        |     ", 
-							  "              |        |     ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |  /     |     ", 
-							  "              | /      |     ", 
-							  "              |/      (_)    ", 
-							  "              |        |     ", 
-							  "              |        |     ", 
-							  "              |       /      ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |  /     |     ", 
-							  "              | /      |     ", 
-							  "              |/      (_)    ", 
-							  "              |        |     ", 
-							  "              |        |     ", 
-							  "              |       / \\    ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |  /     |     ", 
-							  "              | /      |     ", 
-							  "              |/      (_)    ", 
-							  "              |       /|     ", 
-							  "              |        |     ", 
-							  "              |       / \\    ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "},
-							 {"                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "                             ", 
-							  "              __________     ",
-							  "              |  /     |     ", 
-							  "              | /      |     ", 
-							  "              |/      (_)    ", 
-							  "              |       /|\\    ", 
-							  "              |        |     ", 
-							  "              |       / \\    ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "              |              ", 
-							  "    __________|__________    ", 
-							  "   /                     \\   ", 
-							  "  /                       \\  ", 
-							  " /                         \\ ", 
-							  "                             "}};*/
+							  "   \u2571                                       \u2572 "},
+							 {"                         ________ \n", 
+							  "                        \u2502    \u2571    \u2502    \n", 
+							  "                        \u2502  \u2571      \u2502    \n", 
+							  "                        \u2502\u2571          \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
+							  "       \u2571                               \u2572   \n", 
+							  "     \u2571                                   \u2572  \n", 
+							  "   \u2571                                       \u2572 "},
+							 {"                         ________ \n", 
+							  "                        \u2502    \u2571    \u2502    \n", 
+							  "                        \u2502  \u2571      \u2502    \n", 
+							  "                        \u2502\u2571       (_)   \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
+							  "       \u2571                               \u2572   \n", 
+							  "     \u2571                                   \u2572  \n", 
+							  "   \u2571                                       \u2572 "},
+							 {"                         ________ \n", 
+							  "                        \u2502  /       \u2502    \n", 
+							  "                        \u2502 /        \u2502    \n", 
+							  "                        \u2502/        (_)   \n", 
+							  "                        \u2502          \u2502    \n", 
+							  "                        \u2502          \u2502    \n", 
+							  "                        \u2502             \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
+							  "       \u2571                               \u2572   \n", 
+							  "     \u2571                                   \u2572  \n", 
+							  "   \u2571                                       \u2572 "},
+							 {"                         ________ \n", 
+							  "                        \u2502  /       \u2502    \n", 
+							  "                        \u2502 /        \u2502    \n", 
+							  "                        \u2502/        (_)   \n", 
+							  "                        \u2502          \u2502    \n", 
+							  "                        \u2502          \u2502    \n", 
+							  "                        \u2502         \u2571   \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
+							  "       \u2571                               \u2572   \n", 
+							  "     \u2571                                   \u2572  \n", 
+							  "   \u2571                                       \u2572 "},
+							 {"                         ________ \n", 
+							  "                        \u2502  /       \u2502    \n", 
+							  "                        \u2502 /        \u2502    \n", 
+							  "                        \u2502/        (_)   \n", 
+							  "                        \u2502          \u2502    \n", 
+							  "                        \u2502          \u2502    \n", 
+							  "                        \u2502         \u2571\u2572  \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
+							  "       \u2571                               \u2572   \n", 
+							  "     \u2571                                   \u2572  \n", 
+							  "   \u2571                                       \u2572 "},
+							 {"                         ________ \n", 
+							  "                        \u2502  /       \u2502    \n", 
+							  "                        \u2502 /        \u2502    \n", 
+							  "                        \u2502/        (_)   \n", 
+							  "                        \u2502         /\u2502    \n", 
+							  "                        \u2502          \u2502    \n", 
+							  "                        \u2502         \u2571\u2572  \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
+							  "       \u2571                               \u2572   \n", 
+							  "     \u2571                                   \u2572  \n", 
+							  "   \u2571                                       \u2572 "},
+							 {"                         ________ \n", 
+							  "                        \u2502  /       \u2502    \n", 
+							  "                        \u2502 /        \u2502    \n", 
+							  "                        \u2502/        (_)   \n", 
+							  "                        \u2502         /\u2502\\   \n", 
+							  "                        \u2502          \u2502    \n", 
+							  "                        \u2502         \u2571\u2572  \n", 
+							  "                        \u2502            \n", 
+							  "                        \u2502         \n", 
+							  "         __________\u2502_________   \n", 
+							  "       \u2571                               \u2572   \n", 
+							  "     \u2571                                   \u2572  \n", 
+							  "   \u2571                                       \u2572 "}};
 
 	protected BlockingQueue<Integer> queue = null;
 
@@ -674,20 +564,21 @@ class MyThread extends Thread {
 	}
 
 	public void run() {
-		//while(true) {
-			//try {
-				//queue.take();
-				animate(1);
-			//} catch(InterruptedException exc) {
-			//	exc.printStackTrace();
-			//}
-		//}
+		while(true) {
+			try {
+				//Retrieve integer value from bufferqueue
+				animate(queue.take());
+			} catch(InterruptedException exc) {
+				exc.printStackTrace();
+			}
+		}
 	}
 
 	public static void animate(int n) {
-		for(int i = 0; i < 14; i++) {
+		hangingmanGUI.animation.setText("");
+		for(int i = 0; i < 13; i++) {
 			String temp = hangingmanGUI.animation.getText();
-			hangingmanGUI.animation.setText(temp + frames[n][i]);
+			hangingmanGUI.animation.setText(temp + frames[n-1][i]);
 		}
 	}
 }
