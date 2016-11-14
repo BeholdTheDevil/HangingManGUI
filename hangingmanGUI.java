@@ -212,8 +212,9 @@ public class hangingmanGUI extends JFrame {
 				for(int j = 1; j < answerWord.length; j++) {
 					printedWord[j*2] = answerWord[j];
 				}
-				System.out.println("Got here");
-				//------------------------------ Needs win function --------------------------
+				answerField.setText(String.valueOf(printedWord).toString().toUpperCase());
+				wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns).toString().toUpperCase());
+				currentAns = new char[currentAns.length];
 				youWon();
 			}
 			if(!correctAns) {
@@ -227,11 +228,6 @@ public class hangingmanGUI extends JFrame {
 			//If char[] is a single char
 		} else if(currentAns.length == 1 && compareToWordList(currentAns)) {
 			//Check if answer contains that character
-			for(char c : answerWord) {
-
-			}
-
-
 			for(int i = 0; i < answerWord.length; i++) {
 				if(answerWord[i] == currentAns[0]) {
 					correctAns = true;
@@ -240,6 +236,7 @@ public class hangingmanGUI extends JFrame {
 					if(String.valueOf(printedWord).replaceAll("\\s+","").trim().equals(String.valueOf(answerWord))) {
 						//You have won!
 						answerField.setText(String.valueOf(printedWord).toString().toUpperCase());
+						wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns).toString().toUpperCase());
 						currentAns = new char[currentAns.length];
 						youWon();
 					}
@@ -257,6 +254,7 @@ public class hangingmanGUI extends JFrame {
 				if(guessCount == guesses) {
 					//You have lost
 					answerField.setText(String.valueOf(printedWord).toString().toUpperCase());
+					wordList.setText(wordList.getText() + "\n" + String.valueOf(currentAns).toString().toUpperCase());
 					currentAns = new char[currentAns.length];
 					youLost();
 				}
@@ -286,7 +284,7 @@ public class hangingmanGUI extends JFrame {
 
 	public static void initWordList() {
 		wordList = new JTextPane();
-		wordList.setText("Words guessed:");
+		wordList.setText("Guessed characters/words:");
 		wordList.setPreferredSize(new Dimension(200, 240));
 		wordList.setBackground(new Color(230, 230, 230));
 		wordList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -393,6 +391,7 @@ public class hangingmanGUI extends JFrame {
                 }
             }
         );
+        userInput.requestFocus();
 	}
 
 
