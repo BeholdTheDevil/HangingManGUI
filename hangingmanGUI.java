@@ -407,20 +407,24 @@ public class hangingmanGUI extends JFrame {
 
 
 	public static void youWon() throws NullPointerException {
+		//Disable all userinput until an answer is given
 		userInput.setEditable(false);
 		reset.setEnabled(false);
 		submit.setEnabled(false);
 		JOptionPane pane = new JOptionPane("Congratulations you have won, do you want to play again?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
 		JDialog dialog = pane.createDialog("Play again?");
+
+		//Add a windowlistener that runs the restart method if the JOptionPane is exited
 		dialog.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent evt) {
 				restart();
 			}
 		});
 		dialog.setContentPane(pane);
-		//dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		dialog.pack();
 		dialog.setVisible(true);
+
+		//Check which answer was given on 
 		int n = ((Integer)pane.getValue()).intValue();
 		if(n == JOptionPane.YES_OPTION) {
 			userInput.setEditable(true);
@@ -433,18 +437,20 @@ public class hangingmanGUI extends JFrame {
 	}
 
 	public static void youLost() throws NullPointerException {
+		//Disable all userinput until an answer is given
 		userInput.setEditable(false);
 		reset.setEnabled(false);
 		submit.setEnabled(false);
 		JOptionPane pane = new JOptionPane("You are out of guesses, do you want to play again?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
 		JDialog dialog = pane.createDialog("Try again?");
+
+		//Add a windowlistener that runs the restart method if the JOptionPane is exited
 		dialog.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent evt) {
 				restart();
 			}
 		});
 		dialog.setContentPane(pane);
-		//dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		dialog.pack();
 		dialog.setVisible(true);
 		int n = ((Integer)pane.getValue()).intValue();
