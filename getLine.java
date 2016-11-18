@@ -3,7 +3,14 @@ import java.util.*;
 
 public class getLine {
 
-	public static String getWord() {
+	public static String getWord(int difficulty) {
+
+		String[] dict = {"dictfile.txt",
+						"easydict.txt",
+						"meddict.txt",
+						"interdict.txt",
+						"harddict.txt",
+						"expertdict.txt"};
 
 		try{
 
@@ -18,7 +25,7 @@ public class getLine {
 
 			//System.out.println(rand);
 				// Get file
-			FileInputStream fs = new FileInputStream("dictfile.txt");
+			FileInputStream fs = new FileInputStream(dict[difficulty]);
 			DataInputStream in = new DataInputStream(fs);
 			InputStreamReader reader = new InputStreamReader(in);
 				// This one reads the rows.

@@ -16,6 +16,7 @@ import javax.swing.text.BadLocationException;
 import java.util.concurrent.*;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.regex.*;
 
 public class hangingmanGUI extends JFrame {
 
@@ -26,6 +27,7 @@ public class hangingmanGUI extends JFrame {
 	*/
 	public static int guesses = 11;
 	public static int guessCount = 0;
+	public static int difficulty = 0;
 	public static boolean godMode = false;
 
 	public static JFrame mainframe;
@@ -51,12 +53,17 @@ public class hangingmanGUI extends JFrame {
 				System.out.println("Godmode engaged, please enter a word");
 				String temp = scan.next().toLowerCase();
 				answerWord = temp.toCharArray();
+			} else if(args[0].matches("-level=\\d")) {
+					// Parse the regex string to an integer from 1 to 5 depending on the regex input.
+				difficulty = Integer.parseInt(args[0].substring(args[0].length()-1));
+				answerWord = getLine.getWord(difficulty).toCharArray();
 			} else {
-				answerWord = getLine.getWord().toCharArray();
+					// Normal dictfile word
+				answerWord = getLine.getWord(difficulty).toCharArray();
 			}
 		} else {
 			//Get the randomized word from the dictionary
-			answerWord = getLine.getWord().toCharArray();
+			answerWord = getLine.getWord(difficulty).toCharArray();
 		}
 		//Initialize GUI
 		initGUI(answerWord.length);
@@ -177,7 +184,7 @@ public class hangingmanGUI extends JFrame {
 			answerWord = temp.toCharArray();
 		} else {
 			//Generate new word  
-			answerWord = getLine.getWord().toCharArray();
+			answerWord = getLine.getWord(difficulty).toCharArray();
 		}
 		//Create a new savedWordArray for comparison with the size of the new word
 		savedWordArray = new char[guesses][answerWord.length];
